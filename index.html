@@ -75,7 +75,7 @@ body.number-open #canvas{pointer-events:none}
 </div>
 <script src="index.js"></script>
 <script>
-const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4771464,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4780196,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 config.canvasResizePolicy=0;
 config.ensureCrossOriginIsolationHeaders=false;
 config.canvas=document.getElementById('canvas');
@@ -103,8 +103,15 @@ async function start(fullscreen){
  if(!('DecompressionStream' in window))missing.push('DecompressionStream (обновите браузер)');
  if(missing.length){notice.textContent='Браузеру не хватает: '+missing.join(', ');return;}
  notice.textContent='Загружаем игру…';progress.style.display='block';
+ window.crossfireVisualsReady=false;
  try{
   await engine.startGame({onProgress:(current,total)=>{if(total){progress.max=total;progress.value=current;}},onPrint:(text)=>console.log(text),onPrintError:(text)=>console.error(text)});
+  notice.textContent='Готовим трассу и эффекты…';
+  const prepareStarted=performance.now();
+  while(!window.crossfireVisualsReady){
+   if(performance.now()-prepareStarted>120000)throw new Error('Подготовка графики заняла слишком долго.');
+   await new Promise(resolve=>requestAnimationFrame(resolve));
+  }
   document.getElementById('launch').remove();canvas.focus();resize();
  }catch(error){notice.textContent='Не удалось запустить игру: '+error.message+' Попробуй обновить страницу или открыть ссылку в другом браузере.';console.error(error);}
 }

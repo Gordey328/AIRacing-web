@@ -1,5 +1,5 @@
 {
-  "source_commit": "24d93573ec53709f87c00161846880580587ac5c",
+  "source_commit": "fdab703b923d3bd20d53a38dea37d76f8fd2a566",
   "engine": "Godot 4.6.3 stable",
   "thread_support": false,
   "physics_hz": 120,
@@ -7,21 +7,21 @@
   "wasm_uncompressed_bytes": 37700666,
   "wasm_sha256": "26b61ce95247012ab3dca3ff51e96d1cdbff44ee91a8c20a83e150afca83f1b6",
   "files": {
+    "index.audio.position.worklet.js": {
+      "bytes": 2973,
+      "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+    },
     "index.js": {
       "bytes": 316295,
       "sha256": "4894917ad2f367721682276d5d18a200191c8d453b9b570390c0491d34e44e45"
     },
-    ".nojekyll": {
-      "bytes": 0,
-      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    "index.pck": {
+      "bytes": 4780196,
+      "sha256": "b9194bc954d797305f9934e8e297c01e39d6ef0a0436b707c250008a34c7de37"
     },
-    "index.png": {
-      "bytes": 21443,
-      "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
-    },
-    "index.html": {
-      "bytes": 30950,
-      "sha256": "024148a1813655a7d04bf010b080fca9cf51e6ee754788a87eddef7ae6a18439"
+    "index.apple-touch-icon.png": {
+      "bytes": 11952,
+      "sha256": "9b374ecbc8558f480421e646f38aaa8a69d5b1d65ff7b48d0735da214c46773a"
     },
     "index.wasm.gz": {
       "bytes": 9382282,
@@ -31,21 +31,21 @@
       "bytes": 5702,
       "sha256": "08808dd5397e9a502cb3624944151f87a9705b5b66b5c365c5ca4c6ab51525f5"
     },
-    "index.pck": {
-      "bytes": 4771464,
-      "sha256": "d92b0a925a6acf9b2e9fe70bfe481762db3214ae9d9d299fd712d3f0452d18e9"
+    "index.png": {
+      "bytes": 21443,
+      "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
     },
-    "index.apple-touch-icon.png": {
-      "bytes": 11952,
-      "sha256": "9b374ecbc8558f480421e646f38aaa8a69d5b1d65ff7b48d0735da214c46773a"
+    "index.html": {
+      "bytes": 31351,
+      "sha256": "0c6c324f93fb585df60c93f58110ce8004aad0452f06a05567b689a6af346161"
     },
     "index.audio.worklet.js": {
       "bytes": 7298,
       "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
     },
-    "index.audio.position.worklet.js": {
-      "bytes": 2973,
-      "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     }
   }
 }
