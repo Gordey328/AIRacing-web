@@ -27,6 +27,19 @@ html.tuning-open,body.tuning-open{touch-action:auto}
 #tuning-status[data-error=true]{color:#ffb4a8}
 body.tuning-open #canvas{pointer-events:none}
 @media(max-width:380px){.tuning-sheet{padding:12px}.tuning-heading h2{font-size:19px}#tuning-transfer button{padding:12px}}
+
+html.number-open,body.number-open{touch-action:auto}
+body.number-open #canvas{pointer-events:none}
+#tuning-number[hidden],#tuning-number [hidden]{display:none!important}
+#tuning-number{position:fixed;inset:0;z-index:110;display:grid;place-items:center;background:#111d;padding:max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));touch-action:auto;overscroll-behavior:contain}
+#tuning-number .tuning-sheet{width:min(540px,100%)}
+#tuning-number p{margin:12px 0;font-size:14px;overflow-wrap:anywhere}
+#tuning-number label{display:block;margin:12px 0 8px}
+#tuning-number-value{display:block;width:100%;min-width:0;min-height:52px;border:1px solid #8d8970;border-radius:6px;background:#151a16;color:#f0eadc;padding:12px;font:20px ui-monospace,monospace;touch-action:auto;user-select:text;-webkit-user-select:text}
+#tuning-number-status[data-error=true]{color:#ffb4a8}
+#tuning-number-value[aria-invalid=true]{border-color:#ffb4a8}
+#tuning-number button{min-height:48px;padding:12px;font-size:16px;margin:0}
+#tuning-number :focus-visible{outline:3px solid #f4cd7d;outline-offset:2px}
 </style>
 </head>
 <body>
@@ -50,9 +63,19 @@ body.tuning-open #canvas{pointer-events:none}
 <p id="tuning-status" role="status" aria-live="polite" aria-atomic="true"></p>
 </section>
 </div>
+<div id="tuning-number" hidden>
+<form id="tuning-number-form" class="tuning-sheet" role="dialog" aria-modal="true" aria-labelledby="tuning-number-title" aria-describedby="tuning-number-help">
+<div class="tuning-heading"><h2 id="tuning-number-title">Ввести число</h2></div>
+<p id="tuning-number-help"></p>
+<label id="tuning-number-label" for="tuning-number-value">Точное значение</label>
+<input id="tuning-number-value" type="text" inputmode="decimal" enterkeyhint="done" maxlength="64" spellcheck="false" autocomplete="off" autocapitalize="off" autocorrect="off" aria-describedby="tuning-number-status">
+<p id="tuning-number-status" role="status" aria-live="polite"></p>
+<div class="tuning-actions"><button type="button" id="tuning-number-sign" class="secondary" hidden>− / +</button><button type="button" id="tuning-number-cancel" class="secondary">Отмена</button><button type="submit" id="tuning-number-apply">Готово</button></div>
+</form>
+</div>
 <script src="index.js"></script>
 <script>
-const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4784660,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4806856,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
 config.canvasResizePolicy=0;
 config.ensureCrossOriginIsolationHeaders=false;
 config.canvas=document.getElementById('canvas');
@@ -83,6 +106,88 @@ async function start(fullscreen){
  }catch(error){notice.textContent='Не удалось запустить игру: '+error.message+' Попробуй обновить страницу или открыть ссылку в другом браузере.';console.error(error);}
 }
 document.getElementById('play').addEventListener('click',()=>start(false));document.getElementById('fullscreen').addEventListener('click',()=>start(true));
+</script>
+<script>
+/* Numeric entry uses a real browser input, so mobile keyboards and selection
+ * remain native. Godot revalidates every submitted string with the same schema. */
+(()=>{
+ 'use strict';
+ const overlay=document.getElementById('tuning-number'),field=document.getElementById('tuning-number-value');
+ const status=document.getElementById('tuning-number-status'),form=document.getElementById('tuning-number-form');
+ const cancel=document.getElementById('tuning-number-cancel'),sign=document.getElementById('tuning-number-sign');
+ const apply=document.getElementById('tuning-number-apply'),historyKey='crossfireNumericSheet',held=new Set();
+ let active=null,serial=0,returning=false,queued=null;
+ const report=(message,error=false)=>{status.textContent=message;status.dataset.error=String(error);field.setAttribute('aria-invalid',String(error));};
+ const position=()=>{const v=window.visualViewport;if(v)Object.assign(overlay.style,{top:v.offsetTop+'px',left:v.offsetLeft+'px',width:v.width+'px',height:v.height+'px'});};
+ const restore=(name,value)=>value===null?canvas.removeAttribute(name):canvas.setAttribute(name,value);
+ function close(commit=false,back=true){
+  if(!active)return;
+  const old=active,text=field.value;
+  if(commit&&typeof window.crossfireTuningNumberResult!=='function'){report('Игра пока не готова принять число. Повтори позже',true);return;}
+  try{if(typeof window.crossfireTuningNumberResult==='function')window.crossfireTuningNumberResult(old.request.key,text,commit);}catch(_){if(commit){report('Не удалось передать число игре. Ввод сохранён',true);return;}}
+  active=null;overlay.hidden=true;
+  document.documentElement.classList.remove('number-open');document.body.classList.remove('number-open');
+  restore('inert',old.inert);restore('tabindex',old.tabindex);restore('aria-hidden',old.ariaHidden);
+  suspend();canvas.focus({preventScroll:true});
+  if(back&&history.state&&history.state[historyKey]===old.token){returning=true;try{history.back();}catch(_){returning=false;history.replaceState(old.history,'');}}
+ }
+ function valid(){
+  if(!active)return false;
+  const text=field.value.trim().replace(',','.');
+  if(text.length>64||!/^[-+]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[-+]?\d+)?$/i.test(text)){report('Введите число, например 1,25 или 1e3. NaN и бесконечность недопустимы',true);return false;}
+  let value=Number(text)/active.request.factor;
+  if(active.request.factor!==1){const noise=4*Number.EPSILON*Math.max(1,Math.abs(Number(text)));
+   if(Math.abs(Number(text)-active.request.min*active.request.factor)<=noise)value=active.request.min;
+   if(Math.abs(Number(text)-active.request.max*active.request.factor)<=noise)value=active.request.max;
+  }
+  if(!Number.isFinite(value)){report('Требуется конечное число',true);return false;}
+  if(value<active.request.min||value>active.request.max){report('Значение за пределами модели. '+active.request.range,true);return false;}
+  report('Число будет сохранено в черновик без округления к шагу ползунка');return true;
+ }
+ window.crossfireTuningNumber=request=>{
+  if(!request||typeof request.key!=='string'||typeof request.value!=='string'||!Number.isFinite(request.min)||!Number.isFinite(request.max)||!(request.factor>0))return false;
+  if(returning){queued=request;return true;}
+  if(active)close(false,false);
+  if(!document.getElementById('tuning-transfer').hidden)return false;
+  active={request,token:++serial,history:history.state,inert:canvas.getAttribute('inert'),tabindex:canvas.getAttribute('tabindex'),ariaHidden:canvas.getAttribute('aria-hidden')};
+  document.getElementById('tuning-number-title').textContent=request.title;
+  document.getElementById('tuning-number-help').textContent=request.hint+'. '+request.range+'. Диапазон ползунка — подсказка; ручной ввод может выходить за него.';
+  document.getElementById('tuning-number-label').textContent='Точное значение'+(request.unit?' ('+request.unit+')':'');
+  field.value=request.value;sign.hidden=!request.signed;report('Нажми на число, чтобы открыть клавиатуру. Enter — готово, Escape — отмена');
+  overlay.hidden=false;document.documentElement.classList.add('number-open');document.body.classList.add('number-open');
+  suspend();canvas.setAttribute('inert','');canvas.setAttribute('tabindex','-1');canvas.setAttribute('aria-hidden','true');
+  try{history.pushState({...history.state,[historyKey]:active.token},'');}catch(_){}
+  position();field.focus({preventScroll:true});field.select();return true;
+ };
+ form.addEventListener('submit',event=>{event.preventDefault();if(valid())close(true);else field.focus();});
+ field.addEventListener('input',()=>{valid();});
+ cancel.addEventListener('click',()=>close());
+ sign.addEventListener('click',()=>{field.value=field.value.startsWith('-')?field.value.slice(1):'-'+field.value.replace(/^\+/,'');field.focus();valid();});
+ overlay.addEventListener('keyup',event=>event.stopPropagation());
+ document.addEventListener('focusin',event=>{if(active&&!overlay.contains(event.target))field.focus({preventScroll:true});});
+ overlay.addEventListener('keydown',event=>{
+  event.stopPropagation();
+  if(event.key==='Escape'){event.preventDefault();event.stopPropagation();close();}
+  if(event.key==='Tab'){
+   const controls=[field,...(sign.hidden?[]:[sign]),cancel,apply];const i=controls.indexOf(document.activeElement);
+   if((event.shiftKey&&i<=0)||(!event.shiftKey&&i===controls.length-1)){event.preventDefault();controls[event.shiftKey?controls.length-1:0].focus();}
+  }
+ });
+ // Neither typing WASD nor the closing Enter/Escape keyup can reach the race.
+ for(const type of ['keydown','keyup'])window.addEventListener(type,event=>{
+  const key=event.code||event.key;
+  if(active){if(type==='keydown')held.add(key);else held.delete(key);if(!overlay.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();}}
+  else if(type==='keyup'&&held.delete(key)){event.preventDefault();event.stopImmediatePropagation();}
+ },true);
+ for(const type of ['pointerdown','pointerup','touchstart','touchend','touchcancel','mousedown','mouseup','wheel'])overlay.addEventListener(type,event=>event.stopPropagation());
+ window.addEventListener('popstate',()=>{
+  if(active&&(!history.state||history.state[historyKey]!==active.token))close(false,false);
+  if(!active&&history.state&&history.state[historyKey]){const state={...history.state};delete state[historyKey];history.replaceState(state,'');}
+  returning=false;if(queued){const request=queued;queued=null;window.crossfireTuningNumber(request);}
+ });
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',position);window.visualViewport.addEventListener('scroll',position);}
+ window.addEventListener('resize',position);
+})();
 </script>
 <script>
 /* Browser-local bridge for Godot: crossfireTuningTransfer(text, 'export'|'import').

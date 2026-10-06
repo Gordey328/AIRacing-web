@@ -1,4 +1,5 @@
 {
+  "source_commit": "c86175d0c7e9cc2d3b1f2218f90d1be0a40780bf",
   "engine": "Godot 4.6.3 stable",
   "thread_support": false,
   "physics_hz": 120,
@@ -19,8 +20,8 @@
       "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
     },
     "index.html": {
-      "bytes": 21345,
-      "sha256": "b35fd699f8c637f043878b8ec11e60cc89887335769bea7890294f5070267ac8"
+      "bytes": 30547,
+      "sha256": "fe1169968ab519f667fafd44ff0eea3057a5ee168e31dac59c984f86c30b44ee"
     },
     "index.wasm.gz": {
       "bytes": 9382282,
@@ -31,8 +32,8 @@
       "sha256": "08808dd5397e9a502cb3624944151f87a9705b5b66b5c365c5ca4c6ab51525f5"
     },
     "index.pck": {
-      "bytes": 4784660,
-      "sha256": "92ce7dcf0b9033b4065574d0a7b6fd0d3ce2a94bb5b4e59decc768627da88e30"
+      "bytes": 4806856,
+      "sha256": "0f0dbb7af084f2f0c346abd402ae4bb0b29b423e74ecdedfc3af14f3147b5955"
     },
     "index.apple-touch-icon.png": {
       "bytes": 11952,
