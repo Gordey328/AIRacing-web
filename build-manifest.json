@@ -1,5 +1,5 @@
 {
-  "source_commit": "fdab703b923d3bd20d53a38dea37d76f8fd2a566",
+  "source_commit": "ea0a682103682cfff86a56e03993d1f4c632a12c",
   "engine": "Godot 4.6.3 stable",
   "thread_support": false,
   "physics_hz": 120,
@@ -16,8 +16,8 @@
       "sha256": "4894917ad2f367721682276d5d18a200191c8d453b9b570390c0491d34e44e45"
     },
     "index.pck": {
-      "bytes": 4780196,
-      "sha256": "b9194bc954d797305f9934e8e297c01e39d6ef0a0436b707c250008a34c7de37"
+      "bytes": 4792920,
+      "sha256": "97147ed5c83245e5bd670d8ebc4113600a5d22fe7c5e6734a76fd222fe3a8c77"
     },
     "index.apple-touch-icon.png": {
       "bytes": 11952,
@@ -37,7 +37,7 @@
     },
     "index.html": {
       "bytes": 31351,
-      "sha256": "0c6c324f93fb585df60c93f58110ce8004aad0452f06a05567b689a6af346161"
+      "sha256": "aeab9fc0a3fab40c958ed64cafb7bbc6298e6e7b2bcc813dfd0c4fd3809e79ad"
     },
     "index.audio.worklet.js": {
       "bytes": 7298,
