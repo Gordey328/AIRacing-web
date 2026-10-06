@@ -1,0 +1,50 @@
+{
+  "engine": "Godot 4.6.3 stable",
+  "thread_support": false,
+  "physics_hz": 120,
+  "cars": 20,
+  "wasm_uncompressed_bytes": 37700666,
+  "wasm_sha256": "26b61ce95247012ab3dca3ff51e96d1cdbff44ee91a8c20a83e150afca83f1b6",
+  "files": {
+    "index.js": {
+      "bytes": 316295,
+      "sha256": "4894917ad2f367721682276d5d18a200191c8d453b9b570390c0491d34e44e45"
+    },
+    ".nojekyll": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "index.png": {
+      "bytes": 21443,
+      "sha256": "3cb4495c0b98dfbe4b663cbf2b6836473572339beb66d902367893162a70be0e"
+    },
+    "index.html": {
+      "bytes": 21345,
+      "sha256": "b35fd699f8c637f043878b8ec11e60cc89887335769bea7890294f5070267ac8"
+    },
+    "index.wasm.gz": {
+      "bytes": 9382282,
+      "sha256": "9352825a316f4449b81d326706e78be95ed5a81c0e797f35879ef8b39bc505bd"
+    },
+    "index.icon.png": {
+      "bytes": 5702,
+      "sha256": "08808dd5397e9a502cb3624944151f87a9705b5b66b5c365c5ca4c6ab51525f5"
+    },
+    "index.pck": {
+      "bytes": 4784660,
+      "sha256": "92ce7dcf0b9033b4065574d0a7b6fd0d3ce2a94bb5b4e59decc768627da88e30"
+    },
+    "index.apple-touch-icon.png": {
+      "bytes": 11952,
+      "sha256": "9b374ecbc8558f480421e646f38aaa8a69d5b1d65ff7b48d0735da214c46773a"
+    },
+    "index.audio.worklet.js": {
+      "bytes": 7298,
+      "sha256": "5b476a9c9ce642c0ee4256436d1bc31d9c38f868aca0f9a8e2a57c18d2dec2a3"
+    },
+    "index.audio.position.worklet.js": {
+      "bytes": 2973,
+      "sha256": "be33985bc7160d6bf9646f259cd86b259cd67b02ccb297ee5c44f8ac84327bc8"
+    }
+  }
+}

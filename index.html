@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#232823">
+<title>Crossfire · Ironjack 27</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#232823;color:#ded7c4;font-family:system-ui,sans-serif;touch-action:none;overscroll-behavior:none}#canvas{display:block;width:100%;height:100%;outline:none;touch-action:none}#launch{position:fixed;inset:0;background:radial-gradient(ellipse at 30% 20%,#615a43,#232823 65%);display:grid;place-content:center;padding:24px;text-align:center}h1{font-size:clamp(38px,9vw,76px);letter-spacing:.07em;margin:0;color:#c99242}p{max-width:520px;color:#c3bba4;line-height:1.5;margin:14px auto}button{background:#c99242;color:#232823;border:0;border-radius:4px;padding:16px 22px;font:700 17px system-ui;cursor:pointer;min-height:54px;touch-action:manipulation}button.secondary{background:#464b3b;color:#ded7c4;margin-left:6px}#notice{min-height:24px;margin-top:20px;color:#ded7c4;font-size:14px}progress{width:min(400px,80vw);height:12px;margin:16px auto;accent-color:#c99242;display:none}small{color:#aaa896;line-height:1.6;margin-top:24px}#insets{position:fixed;visibility:hidden;padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left)}
+/* The game disables touch scrolling; the native transfer sheet must allow it. */
+html.tuning-open,body.tuning-open{touch-action:auto}
+#tuning-transfer[hidden],#tuning-transfer [hidden]{display:none!important}
+#tuning-transfer{position:fixed;inset:0;z-index:100;display:grid;place-items:center;background:#111d;padding:12px;padding: max(12px,env(safe-area-inset-top)) max(12px,env(safe-area-inset-right)) max(12px,env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));touch-action:auto;overscroll-behavior:contain}
+.tuning-sheet{width:min(720px,100%);max-height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;touch-action:auto;background:#232823;border:1px solid #706d56;border-radius:12px;padding:18px;box-shadow:0 12px 60px #0008;text-align:left}
+.tuning-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.tuning-heading h2{font-size:22px;line-height:1.25;margin:0;overflow-wrap:anywhere;color:#e3b66f}
+#tuning-transfer p{max-width:none;margin:12px 0;font-size:15px}
+#tuning-transfer label{display:block;margin:12px 0 8px;font-weight:600}
+#tuning-transfer textarea{display:block;width:100%;min-width:0;height:clamp(150px,32vh,300px);min-height:120px;resize:vertical;overflow:auto;border:1px solid #8d8970;border-radius:6px;background:#151a16;color:#f0eadc;padding:12px;font:16px/1.45 ui-monospace,monospace;touch-action:auto;user-select:text;-webkit-user-select:text;-webkit-overflow-scrolling:touch}
+#tuning-transfer input[type=file]{display:block;width:100%;min-height:48px;font:16px system-ui;color:#ded7c4;touch-action:manipulation}
+#tuning-transfer input[type=file]::file-selector-button{min-height:44px;border:0;border-radius:4px;padding:10px;margin-right:8px;background:#464b3b;color:#ded7c4;font:600 16px system-ui}
+.tuning-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}
+#tuning-transfer button{min-height:48px;padding:12px 16px;font-size:16px;margin:0}
+.tuning-actions button{flex:1 1 130px}
+#tuning-transfer :focus-visible{outline:3px solid #f4cd7d;outline-offset:3px}
+#tuning-status{min-height:24px;overflow-wrap:anywhere}
+#tuning-status[data-error=true]{color:#ffb4a8}
+body.tuning-open #canvas{pointer-events:none}
+@media(max-width:380px){.tuning-sheet{padding:12px}.tuning-heading h2{font-size:19px}#tuning-transfer button{padding:12px}}
+</style>
+</head>
+<body>
+<canvas id="canvas" tabindex="0" aria-label="Crossfire, гонка с сенсорным управлением"></canvas>
+<div id="insets"></div>
+<section id="launch">
+<h1>CROSSFIRE</h1><p>20 машин. Восьмёрка, портовое кольцо и дерби.<br>IRONJACK 27 · контактные гонки</p>
+<div><button id="play">Играть</button><button class="secondary" id="fullscreen">На весь экран</button></div>
+<progress id="progress"></progress><div id="notice" role="status">Первый запуск: около 14 МБ. Лучше горизонтально</div>
+<small>Телефон: держи газ и руль одновременно<br>Клавиатура: WASD / стрелки · пробел · R · Esc<br>Нужен современный браузер с WebGL 2</small>
+</section><noscript>Для игры нужен JavaScript</noscript>
+<div id="tuning-transfer" hidden>
+<section class="tuning-sheet" role="dialog" aria-modal="true" aria-labelledby="tuning-title" aria-describedby="tuning-help" tabindex="-1">
+<div class="tuning-heading"><h2 id="tuning-title">Настройки машины</h2><button type="button" id="tuning-close" class="secondary" aria-label="Закрыть окно обмена настройками">Закрыть</button></div>
+<p id="tuning-help"></p>
+<div id="tuning-file-wrap" hidden><label for="tuning-file">Открыть JSON-файл (до 64 КиБ)</label><input id="tuning-file" type="file" accept=".json,application/json,text/json"></div>
+<label for="tuning-json">JSON настроек</label>
+<textarea id="tuning-json" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off" aria-describedby="tuning-status"></textarea>
+<div class="tuning-actions" id="tuning-export-actions"><button type="button" id="tuning-copy">Копировать</button><button type="button" id="tuning-download">Скачать .json</button><button type="button" id="tuning-share" hidden>Поделиться…</button></div>
+<div class="tuning-actions" id="tuning-import-actions" hidden><button type="button" id="tuning-apply">Применить JSON</button></div>
+<p id="tuning-status" role="status" aria-live="polite" aria-atomic="true"></p>
+</section>
+</div>
+<script src="index.js"></script>
+<script>
+const config = {"args":[],"canvasResizePolicy":2,"emscriptenPoolSize":8,"ensureCrossOriginIsolationHeaders":true,"executable":"index","experimentalVK":false,"fileSizes":{"index.pck":4784660,"index.wasm":37700666},"focusCanvas":true,"gdextensionLibs":[],"godotPoolSize":4};
+config.canvasResizePolicy=0;
+config.ensureCrossOriginIsolationHeaders=false;
+config.canvas=document.getElementById('canvas');
+const engine=new Engine(config),canvas=config.canvas,notice=document.getElementById('notice'),progress=document.getElementById('progress');
+let started=false;
+function resize(){
+ const w=innerWidth,h=innerHeight,dpr=Math.min(devicePixelRatio||1,1.5);
+ // Cap only pixel density, never simulation frequency or opponent count.
+ canvas.width=Math.round(w*dpr);canvas.height=Math.round(h*dpr);
+ const cs=getComputedStyle(document.getElementById('insets'));
+ window.crossfireSafeInsets=[parseFloat(cs.paddingTop)/h,parseFloat(cs.paddingRight)/w,parseFloat(cs.paddingBottom)/h,parseFloat(cs.paddingLeft)/w];
+}
+resize();window.addEventListener('resize',resize);if(window.visualViewport)window.visualViewport.addEventListener('resize',resize);
+function suspend(){if(typeof window.crossfireFocusLost==='function')window.crossfireFocusLost()}
+window.addEventListener('blur',suspend);document.addEventListener('visibilitychange',()=>{if(document.hidden)suspend()});canvas.addEventListener('touchcancel',suspend);
+canvas.addEventListener('contextmenu',e=>e.preventDefault());
+async function start(fullscreen){
+ if(started)return;started=true;
+ document.getElementById('play').disabled=true;document.getElementById('fullscreen').disabled=true;
+ if(fullscreen&&document.documentElement.requestFullscreen){try{await document.documentElement.requestFullscreen();if(screen.orientation?.lock)await screen.orientation.lock('landscape').catch(()=>{});}catch(_){}}
+ const missing=Engine.getMissingFeatures({threads:false});
+ if(!('DecompressionStream' in window))missing.push('DecompressionStream (обновите браузер)');
+ if(missing.length){notice.textContent='Браузеру не хватает: '+missing.join(', ');return;}
+ notice.textContent='Загружаем игру…';progress.style.display='block';
+ try{
+  await engine.startGame({onProgress:(current,total)=>{if(total){progress.max=total;progress.value=current;}},onPrint:(text)=>console.log(text),onPrintError:(text)=>console.error(text)});
+  document.getElementById('launch').remove();canvas.focus();resize();
+ }catch(error){notice.textContent='Не удалось запустить игру: '+error.message+' Попробуй обновить страницу или открыть ссылку в другом браузере.';console.error(error);}
+}
+document.getElementById('play').addEventListener('click',()=>start(false));document.getElementById('fullscreen').addEventListener('click',()=>start(true));
+</script>
+<script>
+/* Browser-local bridge for Godot: crossfireTuningTransfer(text, 'export'|'import').
+ * Import calls crossfireTuningImportResult(text); Godot owns schema validation,
+ * applying values atomically, and keeping its tuning/pause menu open. */
+(()=>{
+ 'use strict';
+ const maxBytes=64*1024,historyKey='crossfireTuningSheet';
+ const overlay=document.getElementById('tuning-transfer'),sheet=overlay.querySelector('.tuning-sheet');
+ const field=document.getElementById('tuning-json'),fileInput=document.getElementById('tuning-file');
+ const status=document.getElementById('tuning-status'),closeButton=document.getElementById('tuning-close');
+ const applyButton=document.getElementById('tuning-apply'),shareButton=document.getElementById('tuning-share');
+ const heldKeys=new Set();
+ let active=null,serial=0,fileSerial=0,returningHistory=false,queuedOpen=null;
+ const bytes=text=>new Blob([text]).size;
+ function report(message,error=false){status.textContent=message;status.dataset.error=String(error);}
+ function selectText(){field.focus({preventScroll:true});field.select();field.setSelectionRange(0,field.value.length);}
+ function positionSheet(){
+  const viewport=window.visualViewport;
+  if(viewport){Object.assign(overlay.style,{top:viewport.offsetTop+'px',left:viewport.offsetLeft+'px',width:viewport.width+'px',height:viewport.height+'px'});}
+ }
+ function restoreAttribute(node,name,value){if(value===null)node.removeAttribute(name);else node.setAttribute(name,value);}
+ function closeSheet(traverseHistory=true){
+  if(!active)return;
+  const previous=active;active=null;fileSerial++;
+  overlay.hidden=true;document.documentElement.classList.remove('tuning-open');document.body.classList.remove('tuning-open');
+  restoreAttribute(canvas,'tabindex',previous.tabindex);restoreAttribute(canvas,'aria-hidden',previous.ariaHidden);restoreAttribute(canvas,'inert',previous.inert);
+  field.value='';fileInput.value='';
+  // Releasing input is deliberately separate from the game's resume command.
+  suspend();canvas.focus({preventScroll:true});
+  if(traverseHistory&&previous.historyToken&&history.state&&history.state[historyKey]===previous.historyToken){
+   returningHistory=true;
+   try{history.back();}catch(_){returningHistory=false;history.replaceState(previous.historyState,'');}
+  }
+ }
+ function configure(text,mode){
+  active.generation=++serial;active.mode=mode;fileSerial++;
+  const importing=mode==='import';
+  document.getElementById('tuning-title').textContent=importing?'Импорт настроек':'Экспорт настроек';
+  document.getElementById('tuning-help').textContent=importing?'Выбери JSON-файл или вставь текст. Игра проверит настройки перед применением. Файл остаётся на устройстве.':'Сохрани JSON или скопируй текст. Если браузер ограничивает доступ, выдели текст и скопируй его вручную.';
+  document.getElementById('tuning-file-wrap').hidden=!importing;
+  document.getElementById('tuning-export-actions').hidden=importing;
+  document.getElementById('tuning-import-actions').hidden=!importing;
+  shareButton.hidden=importing||typeof navigator.share!=='function';
+  field.readOnly=!importing;field.value=text;fileInput.value='';applyButton.disabled=false;
+  report(importing?'Лимит: 64 КиБ. Закрытие окна ничего не меняет.':'Обмен происходит только по выбранному тобой действию.');
+  if(bytes(text)>maxBytes)report('Размер превышает 64 КиБ. Выбери меньший файл или сократи текст.',true);
+  positionSheet();sheet.scrollTop=0;closeButton.focus({preventScroll:true});
+ }
+ window.crossfireTuningTransfer=function(text,mode){
+  if(mode!=='export'&&mode!=='import')return false;
+  text=typeof text==='string'?text:'';
+  if(returningHistory){queuedOpen={text,mode};return true;}
+  if(!active){
+   active={tabindex:canvas.getAttribute('tabindex'),ariaHidden:canvas.getAttribute('aria-hidden'),inert:canvas.getAttribute('inert'),historyState:history.state,historyToken:null};
+   suspend();canvas.blur();canvas.setAttribute('inert','');canvas.setAttribute('aria-hidden','true');canvas.setAttribute('tabindex','-1');
+   overlay.hidden=false;document.documentElement.classList.add('tuning-open');document.body.classList.add('tuning-open');
+   const token='tuning-'+Date.now()+'-'+(++serial);
+   try{history.pushState({[historyKey]:token},'');active.historyToken=token;}catch(_){/* Embedded browsers can disallow History; Close and Escape still work. */}
+  }
+  configure(text,mode);return true;
+ };
+ closeButton.addEventListener('click',()=>closeSheet());
+ window.addEventListener('popstate',()=>{
+  if(active&&(!history.state||history.state[historyKey]!==active.historyToken))closeSheet(false);
+  returningHistory=false;
+  if(queuedOpen){const next=queuedOpen;queuedOpen=null;window.crossfireTuningTransfer(next.text,next.mode);}
+ });
+ // Keep native editing/touch defaults but stop these events before Godot's
+ // document/window listeners. Canvas is inert for the entire modal lifetime.
+ ['pointerdown','pointerup','pointermove','pointercancel','mousedown','mouseup','mousemove','click','dblclick','touchstart','touchmove','touchend','touchcancel','wheel','contextmenu','paste','copy','cut','beforeinput','input','compositionstart','compositionupdate','compositionend','keypress'].forEach(type=>{
+  overlay.addEventListener(type,event=>event.stopPropagation(),{passive:true});
+ });
+ window.addEventListener('keydown',event=>{
+  if(!active)return;
+  heldKeys.add(event.code||event.key);
+  if(!overlay.contains(event.target)){event.preventDefault();event.stopImmediatePropagation();closeButton.focus({preventScroll:true});}
+ },true);
+ window.addEventListener('keyup',event=>{
+  const held=heldKeys.delete(event.code||event.key);
+  if(held&&(!active||!overlay.contains(event.target))){event.preventDefault();event.stopImmediatePropagation();}
+ },true);
+ overlay.addEventListener('keydown',event=>{
+  event.stopPropagation();
+  if(event.key==='Escape'){event.preventDefault();closeSheet();return;}
+  if(event.key==='Tab'){
+   const focusable=Array.from(sheet.querySelectorAll('button,input,textarea')).filter(node=>!node.disabled&&node.getClientRects().length);
+   const first=focusable[0],last=focusable[focusable.length-1];
+   if(event.shiftKey&&document.activeElement===first){event.preventDefault();last.focus();}
+   else if(!event.shiftKey&&document.activeElement===last){event.preventDefault();first.focus();}
+  }
+ });
+ overlay.addEventListener('keyup',event=>event.stopPropagation());
+ document.addEventListener('focusin',event=>{if(active&&!overlay.contains(event.target))closeButton.focus({preventScroll:true});});
+ window.addEventListener('resize',positionSheet);
+ if(window.visualViewport){window.visualViewport.addEventListener('resize',positionSheet);window.visualViewport.addEventListener('scroll',positionSheet);}
+ field.addEventListener('input',()=>{
+  if(active&&active.mode==='import'){
+   fileSerial++;applyButton.disabled=false;
+   report(bytes(field.value)>maxBytes?'Размер превышает 64 КиБ. Сократи текст перед применением.':'JSON будет проверен игрой перед применением.',bytes(field.value)>maxBytes);
+  }
+ });
+ fileInput.addEventListener('change',()=>{
+  const file=fileInput.files&&fileInput.files[0];if(!active||active.mode!=='import'||!file)return;
+  const generation=active.generation,readSerial=++fileSerial;
+  if(file.size>maxBytes){applyButton.disabled=false;report('Файл больше 64 КиБ. Выбери меньший JSON-файл.',true);fileInput.value='';return;}
+  report('Читаем файл…');applyButton.disabled=true;
+  const reader=new FileReader();
+  reader.onload=()=>{
+   if(!active||active.generation!==generation||fileSerial!==readSerial)return;
+   applyButton.disabled=false;
+   const text=typeof reader.result==='string'?reader.result:'';
+   if(bytes(text)>maxBytes){report('Текст файла превышает 64 КиБ.',true);return;}
+   field.value=text;report('Файл открыт. Нажми «Применить JSON», чтобы проверить и применить настройки.');
+  };
+  reader.onerror=reader.onabort=()=>{if(active&&active.generation===generation&&fileSerial===readSerial){applyButton.disabled=false;report('Не удалось прочитать файл. Попробуй ещё раз или вставь JSON вручную.',true);}};
+  try{reader.readAsText(file);}catch(_){reader.onerror();}
+ });
+ applyButton.addEventListener('click',()=>{
+  if(!active||active.mode!=='import'||applyButton.disabled)return;
+  const text=field.value;
+  if(bytes(text)>maxBytes){report('Размер превышает 64 КиБ. Настройки не отправлены в игру.',true);return;}
+  if(!text.trim()){report('Выбери JSON-файл или вставь текст настроек.',true);return;}
+  if(typeof window.crossfireTuningImportResult!=='function'){report('Игра пока не готова принять настройки. Закрой окно и попробуй ещё раз.',true);return;}
+  applyButton.disabled=true;
+  try{window.crossfireTuningImportResult(text);closeSheet();}
+  catch(_){applyButton.disabled=false;report('Не удалось передать настройки игре. Текст сохранён здесь; попробуй ещё раз.',true);}
+ });
+ document.getElementById('tuning-copy').addEventListener('click',async()=>{
+  if(!active||active.mode!=='export')return;
+  const generation=active.generation,text=field.value;
+  selectText();
+  try{
+   if(!navigator.clipboard||typeof navigator.clipboard.writeText!=='function')throw new Error('Clipboard unavailable');
+   await navigator.clipboard.writeText(text);
+   if(active&&active.generation===generation)report('JSON скопирован в буфер обмена.');
+  }catch(_){if(active&&active.generation===generation){selectText();report('Браузер не разрешил копирование. Текст выделен: нажми и удерживай его, затем выбери «Скопировать».',true);}}
+ });
+ document.getElementById('tuning-download').addEventListener('click',()=>{
+  if(!active||active.mode!=='export')return;
+  let url=null;
+  try{
+   url=URL.createObjectURL(new Blob([field.value],{type:'application/json;charset=utf-8'}));
+   const link=document.createElement('a');link.href=url;link.download='crossfire-tuning.json';link.hidden=true;sheet.appendChild(link);link.click();link.remove();
+   // Safari can need the Blob after the click's task has finished.
+   setTimeout(()=>URL.revokeObjectURL(url),60000);
+   report('Запрос на скачивание отправлен браузеру. Если файл не появился, скопируй JSON или выбери «Поделиться».');
+  }catch(_){if(url)URL.revokeObjectURL(url);selectText();report('Не удалось начать скачивание. Текст выделен для ручного копирования.',true);}
+ });
+ shareButton.addEventListener('click',async()=>{
+  if(!active||active.mode!=='export'||typeof navigator.share!=='function')return;
+  const generation=active.generation,text=field.value;
+  try{
+   let payload={title:'Crossfire: настройки машины',text};
+   if(typeof File==='function'&&typeof navigator.canShare==='function'){
+    const file=new File([text],'crossfire-tuning.json',{type:'application/json'});
+    if(navigator.canShare({files:[file]}))payload={title:payload.title,files:[file]};
+   }
+   await navigator.share(payload);
+   if(active&&active.generation===generation)report('Действие в меню «Поделиться» завершено.');
+  }catch(error){if(active&&active.generation===generation){if(error&&error.name==='AbortError')report('Обмен отменён. JSON остаётся доступен здесь.');else{selectText();report('Не удалось открыть обмен. Текст выделен для ручного копирования.',true);}}}
+ });
+})();
+</script>
+</body></html>
+
